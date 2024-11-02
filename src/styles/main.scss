@@ -1,0 +1,78 @@
+$material-light: (
+  "text-fields": (
+    "outlined": rgba(171, 209, 101, 0.19),
+    "outlined-hover": rgba(150, 30, 30, 0.38),
+  ),
+);
+
+body {
+  font-family: "Arial", sans-serif; /* Use Source Sans 3 as the primary font, with a fallback to a generic sans-serif font */
+}
+
+.custom-rounded-card {
+  border-radius: 45px;
+}
+
+.limited-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+th {
+  text-transform: uppercase;
+  color: gray;
+}
+
+thead {
+  background-color: #f5f6fa;
+}
+
+td {
+  height: 75px !important;
+}
+
+.move {
+  color: #bdbdbd;
+}
+
+.cursor-move {
+  cursor: move;
+}
+
+.move:hover {
+  cursor: move;
+}
+
+.status.draft {
+  border-left: 4px solid #bdbdbd;
+}
+.status.created {
+  border-left: 4px solid #bdbdbd;
+}
+.status.in_review {
+  border-left: 4px solid #f9a825;
+}
+.status.in-review {
+  border-left: 4px solid #f9a825;
+}
+.status.in_marking {
+  border-left: 4px solid #f9a825;
+}
+.status.submitted {
+  border-left: 4px solid hsl(253, 91%, 33%);
+}
+.status.awarded {
+  border-left: 4px solid #009688;
+}
+.status.published {
+  border-left: 4px solid #009688;
+}
+.status.expired {
+  border-left: 4px solid #f44336;
+}
+.status.closed {
+  border-left: 4px solid #000000;
+}
