@@ -9,9 +9,6 @@
       <!-- Title -->
       <v-toolbar-title>
         <Search :show="showSearchModal" @close="showSearchModal = false" />
-        <!-- <v-btn flat variant="text" prepend-icon="mdi-magnify" class="text-none">
-          {{ $t("search") }}
-        </v-btn> -->
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
@@ -20,7 +17,16 @@
         <template v-slot:activator="{ props }">
           <v-btn icon v-bind="props">
             <v-avatar right size="36px">
-              <v-img alt="Avatar" src="/imgs/profile.jpg"></v-img>
+              <v-img 
+                v-if="authUser?.displayPhoto" 
+                :alt="authUser.firstName" 
+                :src="authUser.displayPhoto" 
+              />
+              <v-img 
+                v-else 
+                alt="Avatar" 
+                src="/imgs/profile.jpg" 
+              />
             </v-avatar>
           </v-btn>
         </template>
@@ -53,12 +59,13 @@
 
 <script lang="ts" setup>
 import { navLinks } from "@/helpers/links";
-import { defineAsyncComponent, ref } from "vue";
+import { defineAsyncComponent, ref, computed } from "vue";
 import Drawer from "./Drawer.vue";
 import router from "@/router";
 import { Link } from "@/types/Link";
 import { useAuthStore } from "@/store/authStore";
 import Search from "./Search.vue";
+
 const SupportFormModal = defineAsyncComponent(
   () => import("@/views/support/SupportModalForm.vue")
 );
@@ -68,6 +75,9 @@ const showDrawer = ref(true);
 const showSupportDialog = ref<boolean>(false);
 const showSearchModal = ref<boolean>(false);
 
+const authStore = useAuthStore();
+const authUser = computed(() => authStore.authUser);
+
 const support = () => {
   showSupportDialog.value = true;
 };
@@ -75,7 +85,6 @@ const support = () => {
 const goToPage = async (routeName: string) => {
   switch (routeName) {
     case "signOut":
-      const authStore = useAuthStore();
       await authStore.signOut();
       break;
 

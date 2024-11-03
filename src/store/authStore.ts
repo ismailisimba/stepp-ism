@@ -159,10 +159,11 @@ export const useAuthStore = defineStore("auth", {
       this.authUser = user;
     },
 
-    async updateAuthUser(firstName: string, lastName: string, email: string) {
+    async updateAuthUser(firstName: string, lastName: string, email: string, photo: string) {
       if (this.authUser?.firstName) this.authUser.firstName = firstName;
       if (this.authUser?.lastName) this.authUser.lastName = lastName;
       if (this.authUser?.email) this.authUser.email = email;
+      if (this.authUser?.displayPhoto) this.authUser.displayPhoto = photo;
     },
 
     async signOut() {

@@ -16,7 +16,7 @@ const updateProfile = async (data: Object) => {
       if (!data.success) {
         throw new Error(`HTTP error! status: ${r.status}`);
       }
-      return true;
+      return data;
     });
   } catch (error) {
     throw error;

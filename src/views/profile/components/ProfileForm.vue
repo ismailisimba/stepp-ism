@@ -134,7 +134,7 @@ const payload = () => {
   payload.append("lastName", "" + state.last_name);
   payload.append("email", "" + state.email);
   payload.append("userType", "" + authUser.value?.accountType);
-  payload.append("documents", "" + state.photo);
+  payload.append("profilePicture", state.photo);
   return payload;
 };
 
@@ -150,12 +150,15 @@ const submit = async () => {
   isSubmitting.value = true;
   try {
     await updateProfile(payload()).then((r) => {
+      console.log(r,"rttt")
+      const url = "https://grantman-czivjdfhnq-ez.a.run.app/public_files/"+encodeURIComponent(r.id.profPic)
       isSubmitting.value = false;
       showAlert("success", t("profileUpdate"));
       authStore.updateAuthUser(
-        state.first_name || "",
-        state.last_name || "",
-        state.email || ""
+        r.firstName || "",
+        r.lastName || "",
+        state.email || "",
+        url || ""
       );
     });
   } catch (error: any) {

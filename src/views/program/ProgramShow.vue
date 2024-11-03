@@ -432,7 +432,7 @@ const canRevertToDraft = computed(() => {
 });
 
 const canSubmitForReview = computed(() => {
-  if (isApplicant.value == true)
+  if (isApplicant.value == true || isDonor.value == true)
     if (program.value) if (program.value.status === "Draft") return true;
   return false;
 });
