@@ -123,6 +123,7 @@ const submitSolForm = async () => {
       });
     } catch (error) {
       isSubmitingSolForm.value = false;
+
       showSnackBar("error", t("generalErrorMessage"));
       console.error(error);
     }
@@ -143,7 +144,29 @@ const submitQForm = async () => {
       });
     } catch (error) {
       isSubmitingQForm.value = false;
-      showSnackBar("error", t("generalErrorMessage"));
+      
+      let errorMessage = "";
+
+// Check if the error is an Axios error with a response
+if (error.response && error.response.data) {
+  // If the server provided an error message, use it
+  if (error.response.data.message) {
+    errorMessage = error.response.data.message;
+  } else {
+    // Fallback to a generic message if no specific message is provided
+    errorMessage = t("generalErrorMessage");
+  }
+} else if (error.message) {
+  // For non-Axios errors or errors without a response
+  errorMessage = error.message;
+} else {
+  // Final fallback
+  errorMessage = t("generalErrorMessage");
+}
+
+showSnackBar("error", errorMessage);
+throw error;
+
     }
   }
 };

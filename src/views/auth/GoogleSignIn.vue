@@ -44,6 +44,8 @@ const getUser = async () => {
   try {
     const user = await getAuthUser();
     authStore.setUser(user);
+    
+    authStore.updateAuthUser(user.firstName,user.lastName,user.email,user.displayPhoto)
     router.push({ name: "home" });
   } catch (error) {
     isLoading.value = false;

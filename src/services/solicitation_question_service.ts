@@ -151,9 +151,57 @@ const questions = async (url: string) => {
   return res;
 };
 
+const validateQuestionsPayload = (data: SolicitationQuestionSections) => {
+  let inyxz = 0;
+  for (const section of data) {
+    let inyx = 0;
+    inyxz++;
+    for (const question of section.questions) {
+      inyx++;
+      if (question.markFull === null || question.markFull === undefined || question.markFull.toString() === "") {
+        console.log(question,"data")
+        throw new Error(
+          `Missing markFull value for question number ${inyx} on section  ${inyxz}`
+        );
+        
+      }
+    }
+    inyx = 0;
+  }
+  inyxz = 0;
+};
+
+/*const updateQuestions = async (data: any, solId: string) => {
+  let res;
+  try {
+    const payload = questionsPayload(data);
+    res = await axios
+      .post(
+        `${apiEndpoints.solicitationQuestionsUpdate}/${encodeURIComponent(
+          solId
+        )}`,
+        payload
+      )
+      .then((r) => {
+        const d = extractAxiosData(r) || [];
+        return {
+          solicitation: parseSolicitationFromObject(d[2].id[0]),
+          sections: parseSolicitationQuestionSectionsFromArray(d[1].sections),
+          status: d[2].success,
+        };
+      });
+  } catch (error) {
+    throw error;
+  }
+  return res;
+};*/
+
 const updateQuestions = async (data: any, solId: string) => {
   let res;
   try {
+    // Validate the payload before sending to the API
+    validateQuestionsPayload(data);
+
     const payload = questionsPayload(data);
     res = await axios
       .post(

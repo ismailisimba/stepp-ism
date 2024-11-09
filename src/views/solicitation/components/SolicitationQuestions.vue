@@ -14,6 +14,7 @@
             </p>
           </v-chip>
         </v-card-title>
+
         <v-card-actions>
           <v-container>
             <v-row>
@@ -240,7 +241,7 @@ const hideSnackBar = async () => {
 
 const showSnackBar = (color: SnackbarColor, message: string) => {
   snackBarColor.value = color;
-  snackBarMessage.value = message;
+  snackBarMessage.value = "message";
   snackBarShow.value = true;
 };
 
@@ -299,8 +300,28 @@ const submit = async () => {
     });
   } catch (error) {
     isSubmiting.value = false;
-    showSnackBar("error", t("generalErrorMessage"));
-    throw error;
+    console.log(error,"err")
+    let errorMessage = "";
+
+// Check if the error is an Axios error with a response
+if (error.response && error.response.data) {
+  // If the server provided an error message, use it
+  if (error.response.data.message) {
+    errorMessage = error.response.data.message;
+  } else {
+    // Fallback to a generic message if no specific message is provided
+    errorMessage = t("generalErrorMessage");
+  }
+} else if (error.message) {
+  // For non-Axios errors or errors without a response
+  errorMessage = error.message;
+} else {
+  // Final fallback
+  errorMessage = t("generalErrorMessage");
+}
+
+showSnackBar("error", errorMessage);
+throw error;
   }
 };
 

@@ -13,7 +13,7 @@ export interface Solicitation {
   programId: string;
   questions: [];
   documents: [];
-  appReviewStatus: boolean;
+  appReviewStatus: string;
   createdAt: Date;
 }
 
@@ -51,11 +51,7 @@ export function parseSolicitationFromObject(obj: any): Solicitation {
     programId: obj["program_id"] || null,
     programName: obj["program"] || null,
     documents: obj["documents"].split(", ") || null,
-    appReviewStatus: obj["application_review_status"]
-      ? obj["application_review_status"] == "complete"
-        ? true
-        : false
-      : false,
+    appReviewStatus: obj["application_review_status"],
     createdAt: new Date(obj["created_date"]) || null,
   };
   return p;

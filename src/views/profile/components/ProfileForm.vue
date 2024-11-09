@@ -150,7 +150,7 @@ const submit = async () => {
   isSubmitting.value = true;
   try {
     await updateProfile(payload()).then((r) => {
-      console.log(r,"rttt")
+
       const url = "https://grantman-czivjdfhnq-ez.a.run.app/public_files/"+encodeURIComponent(r.id.profPic)
       isSubmitting.value = false;
       showAlert("success", t("profileUpdate"));

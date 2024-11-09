@@ -87,6 +87,35 @@
         </v-autocomplete>
       </v-col>
 
+      <v-col cols="12" v-if="existingDocuments && existingDocuments.length > 0">
+        <p class="text-subtitle-1 font-weight-medium">
+          {{ $t('existingDocuments') }}:
+        </p>
+  <v-list class="pa-0" color="transparent">
+    <v-list-item
+      v-for="(doc, index) in existingDocuments"
+      :key="doc.id || index"
+    >
+      <v-list-item-content>
+        <v-list-item-title>{{ doc.filename }}</v-list-item-title>
+      </v-list-item-content>
+      <v-list-item-action>
+        <v-btn
+          variant="plain"
+          icon="mdi-download"
+          @click="downloadExistingDoc(index, doc.id, doc.filename)"
+        ></v-btn>
+        <v-btn
+          variant="plain"
+          icon="mdi-close"
+          @click="removeExistingDoc(index)"
+        ></v-btn>
+      </v-list-item-action>
+    </v-list-item>
+  </v-list>
+</v-col>
+
+
       <v-col cols="12">
         <v-file-input
           :label="$t('documents')"
@@ -125,6 +154,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, reactive, computed } from "vue";
+import axios from 'axios'; // Import axios
 import getCountries from "@/services/location_service";
 import { store } from "@/services/program_service";
 import useVuelidate from "@vuelidate/core";
@@ -139,6 +169,9 @@ import router from "@/router";
 import { delayTime } from "@/constants/app_constants";
 import { objectToFormData } from "@/helpers/general";
 import { CustomException } from "@/helpers/errorHelper";
+import { downloadFile } from '@/services/file_service'; // Import downloadFile
+import { FileInfo } from '@/models/FileInfo'; // Import FileInfo
+
 
 const props = withDefaults(
   defineProps<{
@@ -146,6 +179,7 @@ const props = withDefaults(
     showSubmitBtn?: boolean;
     snackIt?: boolean;
     redirectOnSuccess?: boolean;
+    documents?:Array<FileInfo>;
   }>(),
   {
     showSubmitBtn: true,
@@ -153,6 +187,33 @@ const props = withDefaults(
     redirectOnSuccess: true,
   }
 );
+
+const existingDocuments = ref<Array<FileInfo>>();
+
+
+  const downloadExistingDoc = async (index: number, fileId: string, filename: string) => {
+  try {
+    existingDocuments.value[index].isDownloading = true;
+    await downloadFile(fileId, filename);
+  } catch (error) {
+    showSnackBar('error', t('errorDownloadingDocument'));
+  } finally {
+    existingDocuments.value[index].isDownloading = false;
+  }
+};
+
+
+
+const removeExistingDoc = (index: number) => {
+  const removedDoc = existingDocuments.value.splice(index, 1)[0];
+
+  // Remove the corresponding File from state.fileInput
+  if (state.fileInput) {
+    state.fileInput = state.fileInput.filter(file => file.name !== removedDoc.filename);
+  }
+};
+
+
 
 const loadingLocations = ref(false);
 const locations = ref();
@@ -287,6 +348,15 @@ const populate = async () => {
 
 const getPayload = () => {
   let payload = objectToFormData(state);
+
+   // Append existing document IDs if necessary
+   /*if (existingDocuments.value && existingDocuments.value.length > 0) {
+    existingDocuments.value.forEach((doc) => {
+      payload.append('existingDocumentIds', doc.id);
+    });
+  }*/
+
+
   payload.append("id_type", "STRING");
   payload.append("name_type", "STRING");
   payload.append("start_date_type", "DATE");
@@ -304,7 +374,48 @@ const getPayload = () => {
 onMounted(async () => {
   await getLocs();
   await populate();
+
+  if (props.documents) {
+    existingDocuments.value = props.documents.map(doc => ({
+      ...doc,
+      isDownloading: false,
+    }));
+
+    // Fetch binaries and create File objects
+    const existingFiles = await Promise.all(
+      existingDocuments.value.map(async (doc) => {
+        const blob = await downloadFileAsBlob(doc.id);
+        return new File([blob], doc.filename, { type: blob.type });
+      })
+    );
+
+    // Assign existing files to state.fileInput
+    if (state.fileInput) {
+      state.fileInput = [...existingFiles, ...state.fileInput];
+    } else {
+      state.fileInput = existingFiles;
+    }
+  }
+  console.log(props, "mm");
 });
+
+
+const downloadFileAsBlob = async (fileId: string): Promise<Blob> => {
+  try {
+    const response = await axios.get(
+      `https://grantman-czivjdfhnq-ez.a.run.app/public_files/${encodeURIComponent(fileId)}`,
+      {
+        responseType: 'blob',
+        // Include any necessary headers or authentication tokens
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error downloading file as blob:', error);
+    throw error;
+  }
+};
+
 
 defineExpose<{
   submit: () => Promise<any>;

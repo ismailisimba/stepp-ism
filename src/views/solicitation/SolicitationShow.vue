@@ -24,6 +24,21 @@
             @fail="failedToUpdateStatus"
           />
 
+          <!-- Revert to draft -->
+          <ConfirmationDialog
+            v-if="canRevertToDraft && item && item.id"
+            :launch-btn-text="t('revertToDraft')"
+            :title="t('revertToDraft')"
+            :subtitle="t('confirmationText')"
+            :show="true"
+            :icon="'mdi-alpha-r-circle'"
+            :url="`${apiEndpoints.solicitationUpdateStatus}/${encodeURIComponent(
+              item.id
+            )}/${encodeURIComponent('revert to draft')}`"
+            @success="updateStatus"
+            @fail="failedToUpdateStatus"
+          />
+
           <ConfirmationDialog
             v-if="canPublish && item"
             :launch-btn-text="t('publish')"
@@ -329,6 +344,7 @@ const showSnackBar = (color: SnackbarColor, message: string) => {
 const showDeleteDialog = ref(false);
 const deleteUrl = ref("");
 
+
 const appsAwarded = () => {
   showAwardModal.value = false;
   showSnackBar("error", t("appsAwardedMgs"));
@@ -379,6 +395,7 @@ const getItem = async () => {
   try {
     await get(route.params.solId as string).then((res) => {
       isLoading.value = false;
+       console.log(res,"reeees")
       item.value = res;
     });
   } catch (error) {
@@ -467,7 +484,7 @@ const canEdit = computed(() => {
 const canDelete = computed(() => {
   if (isDonor.value) {
     if (item.value)
-      if (item.value.status == "Draft" || item.value.status == "In Review")
+      if (item.value.status == "Draft" || item.value.status == "In Review"|| item.value.status == "Published")
         return true;
   }
   return false;
@@ -490,7 +507,7 @@ const canPublish = computed(() => {
 const canRank = computed(() => {
   if (isDonor.value) {
     if (item.value)
-      if (item.value.status == "Published" && item.value.appReviewStatus)
+      if (item.value.status == "Published" && item.value.appReviewStatus === "complete")
         return true;
   }
   return false;
@@ -498,15 +515,26 @@ const canRank = computed(() => {
 
 const canShortList = computed(() => {
   if (isDonor.value) {
-    if (item.value) if (item.value.status == "Published") return true;
+    if (item.value) if (item.value.status == "Published" && item.value.appReviewStatus === "in_ranking") return true;
   }
   return false;
 });
 
 const canAward = computed(() => {
   if (isDonor.value) {
-    if (item.value) if (item.value.status == "Published") return true;
+    if (item.value) if (item.value.status == "Published" && item.value.appReviewStatus === "in_shortlist") return true;
   }
+  return false;
+});
+
+const canRevertToDraft = computed(() => {
+  if (isDonor.value)
+    if (item.value)
+      if (
+        item.value.status === "Published" ||
+        item.value.status === "In Review"
+      )
+        return true;
   return false;
 });
 

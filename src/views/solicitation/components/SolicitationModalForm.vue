@@ -44,6 +44,9 @@ const props = defineProps<{
   show: boolean;
 }>();
 
+console.log(props,"prps2");
+
+
 const showDialog = ref(false);
 
 const form = ref(null);

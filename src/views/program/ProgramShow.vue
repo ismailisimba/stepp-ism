@@ -228,6 +228,7 @@
   <PopUpForm
     v-if="program"
     :program="program"
+    :documents="documents"
     :show="showUpdateDialog"
     @succeed="onSuccessUpdate"
     @fail="onFailUpdate"
@@ -305,9 +306,13 @@ const onFailUpdate = () => {
   snackBarShow.value = true;
 };
 
-const updateP = () => {
+const updateP = async () => {
+  if (!documents.value || documents.value.length === 0) {
+    await getDocumentsInfo(); // Wait for documents to be fetched
+  }
   showUpdateDialog.value = true;
 };
+
 
 //END UPDATE
 
@@ -351,6 +356,7 @@ const deleteSuccess = (res: any) => {
 
 const program = ref<Program>();
 const isLoading = ref(true);
+
 
 const updateStatus = (r: any) => {
   if (program.value)

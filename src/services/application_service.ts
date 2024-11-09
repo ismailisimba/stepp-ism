@@ -57,6 +57,7 @@ const marksPayload = (data: ApplicationInfo) => {
   let sections = JSON.stringify({
     ...data,
   });
+  console.log(JSON.parse(sections),"appData")
   let payload = new FormData();
   payload.append("inputs", sections);
   return payload;

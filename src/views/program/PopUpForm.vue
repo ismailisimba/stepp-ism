@@ -7,9 +7,11 @@
             ref="form"
             :snack-it="false"
             :program="program"
+            :documents="documents"
             :redirect-on-success="false"
             :show-submit-btn="false"
           />
+
         </v-card-text>
 
         <v-card-actions>
@@ -38,10 +40,13 @@ import { Program } from "@/models/Program";
 import { useI18n } from "vue-i18n";
 import { ref, watch } from "vue";
 import ProgramForm from "./components/ProgramForm.vue";
+import { FileInfo } from '@/models/FileInfo';
+
 
 const { t } = useI18n();
 const props = defineProps<{
   program?: Program;
+  documents?: Array<FileInfo>;
   show: boolean;
 }>();
 

@@ -9,7 +9,7 @@
         <v-col xs="12" sm="12" md="6" lg="6" class="d-flex justify-end">
           <!-- Applicant -->
           <PageHeaderBtn
-            v-if="isApplicant"
+            v-if="isApplicant && application?.status != 'submitted'"
             color="primary"
             icon="mdi-plus-circle"
             :text="t('edit')"
@@ -236,6 +236,7 @@ import InfoSheet from "../components/cards/InfoSheet.vue";
 import DeleteDialog from "../components/DeleteDialog.vue";
 import { questions } from "@/services/solicitation_question_service";
 import { ApplicationInfo } from "@/models/ApplicationInfo";
+import axios from "axios";
 
 const Snackbar = defineAsyncComponent(
   () => import("@/views/components/snackbars/Default.vue")
@@ -255,12 +256,32 @@ const answers = ref<ApplicationInfo>();
 const snackBarShow = ref(false);
 const snackBarColor = ref<SnackbarColor>("success");
 const snackBarMessage = ref("");
+const newPerm = {"value":false,"status":false}
 
 const hideSnackBar = async () => {
   snackBarShow.value = false;
   snackBarMessage.value = "";
   snackBarColor.value = "success";
 };
+
+const getNewRevPerm = async ()=>{
+  const email = authStore.authUser?.email;
+  const emailtoo = application.value?.contactEmail;
+  const soliId = application.value?.solicitationId;
+  newPerm.status = (application.value?.status as string) == "submitted"||(application.value?.status as string) == "in_marking"?true:false;
+  const baseURL = 'https://grantman-czivjdfhnq-ez.a.run.app/public_questions/'+encodeURIComponent(soliId+"/marksJson/"+email+"/"+emailtoo+"/marksJson")
+  const res = await axios.get(baseURL).then((e)=>{return e.data})
+  
+  if(res.no&&res.no=="file!"){
+    newPerm.value = true;
+  }else if(res.markSubmitStatus&&res.markSubmitStatus=="submitted"){
+    console.log(res.no,"ress")
+    newPerm.value = false;
+  }else{
+    newPerm.value = true;
+  }
+  canReview.value = newPerm.status && newPerm.value && isDonor.value;
+}
 
 const showSnackBar = (color: SnackbarColor, message: string) => {
   snackBarColor.value = color;
@@ -315,11 +336,7 @@ const getAnswers = async () => {
   }
 };
 
-const canReview = computed(() => {
-  if (isDonor.value)
-    if ((application.value?.status as string) == "submitted") return true;
-  return false;
-});
+const canReview = ref(false);
 
 const canCreateProject = computed(() => {
   if (isDonor.value)
@@ -328,14 +345,17 @@ const canCreateProject = computed(() => {
 });
 
 const canDelete = computed(() => {
-  if (application.value && isApplicant.value) return true;
+  //if (application.value && isApplicant.value) return true;
+  if (application.value && isDonor.value) return true;
   return false;
 });
 
 onMounted(async () => {
-  await getApp();
+  await getApp(); // Wait for getApp to finish
+  await getNewRevPerm(); // Wait for getNewRevPerm to finish
   if (application.value?.solicitationAnswers != null) await getAnswers();
 });
+
 </script>
 
 <style scoped></style>

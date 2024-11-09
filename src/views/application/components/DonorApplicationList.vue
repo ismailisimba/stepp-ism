@@ -10,20 +10,18 @@
     :hide-default-footer="hideFooter"
     @update:options="(val : any) => $emit('updateList', val)"
   >
-    <!-- Program name Column -->
+    <!-- Program Name Column -->
     <template v-slot:item.programName="{ item }">
       <RouterLink
         :to="{ name: 'programs.show', params: { programId: item.programId } }"
       >
         <div :class="`status ${item.status}`">
-          <span class="pl-3 text-capitalize">{{
-            item.programName.trim()
-          }}</span>
+          <span class="pl-3 text-capitalize">{{ item.programName.trim() }}</span>
         </div>
       </RouterLink>
     </template>
 
-    <!-- Solicitation name Column -->
+    <!-- Solicitation Name Column -->
     <template v-slot:item.solicitationName="{ item }">
       <RouterLink
         :to="{
@@ -35,15 +33,23 @@
       </RouterLink>
     </template>
 
+    <!-- Application Review Status Column -->
+    <template v-slot:item.applicationReviewStatus="{ value }">
+      <span class="text-capitalize">{{ value !== null? value.trim() : 'N/A'  }}</span>
+    </template>
+
+    <!-- Rank Column -->
+    <template v-slot:item.rank="{ value }">
+      <span>{{ value !== null? value : 'N/A' }}</span>
+    </template>
+
     <!-- Status Column -->
     <template v-slot:item.status="{ value }">
       <span class="text-capitalize">{{ value.trim() }}</span>
     </template>
 
-    <!-- Action -->
+    <!-- Actions Column -->
     <template v-slot:item.actions="{ item }">
-      <!-- 
-      <v-icon color="primary" class="me-2" size="x-large" @click.prevent=""> mdi-file-edit-outline </v-icon> -->
       <v-icon
         color="primary"
         class="me-2"
@@ -54,14 +60,6 @@
       >
         mdi-eye-outline
       </v-icon>
-      <!-- <v-icon
-        color="primary"
-        class="me-2"
-        size="x-large"
-        @click="deleteItem(item.id, item.name)"
-      >
-        mdi-close
-      </v-icon> -->
     </template>
   </v-data-table-server>
 
@@ -82,32 +80,43 @@
 import { Applications } from "@/models/Application";
 import DeleteDialog from "@/views/components/DeleteDialog.vue";
 import router from "@/router";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { RouterLink } from "vue-router";
 import apiEndpoints from "@/constants/endpoints";
-import { ref } from "vue";
+
 const { t } = useI18n();
 
 const headers = [
-  //{ title: t("name"), key: "name", sortable: false },
   {
     title: t("programName"),
     key: "programName",
     sortable: false,
-    width: "35%",
+    width: "20%",
   },
   {
     title: t("solicitationName"),
     key: "solicitationName",
     sortable: false,
-    width: "35%",
+    width: "20%",
+  },
+  {
+    title: t("applicationReviewStatus"),
+    key: "applicationReviewStatus",
+    sortable: false,
+    width: "20%",
+  },
+  {
+    title: t("rank"),
+    key: "rank",
+    sortable: false,
+    width: "10%",
   },
   { title: t("status"), key: "status", sortable: false, width: "15%" },
   { title: t("actions"), key: "actions", sortable: false, width: "15%" },
 ];
 
-//Computed
+// Computed
 const perPage = computed({
   get() {
     return props.itemsPerPage;
@@ -144,7 +153,7 @@ const props = withDefaults(
   }
 );
 
-//DELETE
+// DELETE
 const showDeleteDialog = ref(false);
 const deleteUrl = ref("");
 const deleteItemName = ref("");
@@ -168,5 +177,3 @@ const onDeleteSuccessFail = (val: any) => {
   showDeleteDialog.value = false;
 };
 </script>
-
-<style scoped></style>

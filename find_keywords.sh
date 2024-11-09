@@ -4,7 +4,7 @@
 SEARCH_DIR="./src"
 
 # List of keywords to search for (add keywords here)
-KEYWORDS=("map-marker-radius")
+KEYWORDS=("setUser")
 
 # Check if the search directory exists
 if [[ ! -d "$SEARCH_DIR" ]]; then

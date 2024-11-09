@@ -260,7 +260,7 @@ const save = async (showAlert = true, updateSaving = true) => {
 };
 
 const next = async () => {
-  if (isLastStep) {
+  if (isLastStep.value) {
     await submit();
     return;
   }

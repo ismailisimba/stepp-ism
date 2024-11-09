@@ -95,6 +95,36 @@
         </v-autocomplete>
       </v-col>
 
+      <v-col cols="12" v-if="existingDocuments && existingDocuments.length > 0">
+  <p class="text-subtitle-1 font-weight-medium">
+    {{ $t('existingDocuments') }}:
+  </p>
+  <v-list class="pa-0" color="transparent">
+    <v-list-item
+      v-for="(doc, index) in existingDocuments"
+      :key="doc.id || index"
+    >
+
+        <v-list-item-title>{{ doc.filename }}</v-list-item-title>
+      
+      <v-list-item-action>
+        <v-btn
+          variant="plain"
+          icon="mdi-download"
+          :loading="doc.isDownloading"
+          @click="downloadExistingDoc(index, doc.id, doc.filename)"
+        ></v-btn>
+        <v-btn
+          variant="plain"
+          icon="mdi-close"
+          @click="removeExistingDoc(index)"
+        ></v-btn>
+      </v-list-item-action>
+    </v-list-item>
+  </v-list>
+</v-col>
+
+
       <v-col cols="12">
         <v-file-input
           :label="$t('documents')"
@@ -144,6 +174,11 @@ import { get as getPrograms } from "@/services/program_service";
 import { useI18n } from "vue-i18n";
 import { Solicitation } from "@/models/Solicitation";
 import { objectToFormData } from "@/helpers/general";
+// Import at the top of your script
+import { FileInfo } from '@/models/FileInfo';
+import { getFilesInfo, downloadFile } from '@/services/file_service';
+import { SnackbarColor } from "@/types/types";
+import axios from 'axios';
 
 const { t } = useI18n();
 const countryStore = useCountryStore();
@@ -151,6 +186,9 @@ const countryStore = useCountryStore();
 countryStore.loadCountries();
 
 const { isLoading: isLoadingCountries, countries } = storeToRefs(countryStore);
+
+const existingDocuments = ref<Array<FileInfo>>([]);
+
 
 //Lazy load components
 const Snackbar = defineAsyncComponent(
@@ -188,6 +226,30 @@ const loadPrograms = async () => {
     throw error;
   }
 };
+
+
+const downloadExistingDoc = async (index: number, fileId: string, filename: string) => {
+  try {
+    existingDocuments.value[index].isDownloading = true;
+    await downloadFile(fileId, filename);
+  } catch (error) {
+    showSnackBar('error', t('errorDownloadingDocument'));
+  } finally {
+    existingDocuments.value[index].isDownloading = false;
+  }
+};
+
+const removeExistingDoc = (index: number) => {
+  const removedDoc = existingDocuments.value.splice(index, 1)[0];
+
+  // Remove the corresponding File from state.fileInput
+  if (state.fileInput) {
+    state.fileInput = state.fileInput.filter(file => file.name !== removedDoc.filename);
+  }
+};
+
+
+
 
 const formState: SolicitationFormFields = {
   id: `solicitation/${Math.random()}`,
@@ -277,6 +339,7 @@ const populate = async () => {
     isUpdating.value = true;
     isRequiredFields.value = false;
   }
+  console.log(props, "mm")
 };
 
 const getPayload = () => {
@@ -296,11 +359,71 @@ const getPayload = () => {
   payload.append("program_id_type", "STRING");
   return payload;
 };
+const snackBarShow = ref(false);
+const snackBarColor = ref<SnackbarColor>("success");
+const snackBarMessage = ref("");
+
+const showSnackBar = (color: SnackbarColor, message: string) => {
+  snackBarColor.value = color;
+  snackBarMessage.value = message;
+  snackBarShow.value = true;
+};
+
+
+const downloadFileAsFile = async (fileId: string, filename: string): Promise<File> => {
+  try {
+    const response = await axios.get(
+      `https://grantman-czivjdfhnq-ez.a.run.app/public_files/${encodeURIComponent(fileId)}`,
+      {
+        responseType: 'blob',
+        // Include any necessary headers or authentication tokens
+      }
+    );
+    const blob = response.data;
+    const file = new File([blob], filename, { type: blob.type });
+    return file;
+  } catch (error) {
+    console.error('Error downloading file as file:', error);
+    throw error;
+  }
+};
+
 
 onMounted(async () => {
   await loadPrograms();
   await populate();
+
+  if (props.solicitation && props.solicitation.documents && props.solicitation.documents.length > 0) {
+    try {
+      const docsInfo = await getFilesInfo(props.solicitation.documents);
+      existingDocuments.value = docsInfo.map(doc => ({
+        ...doc,
+        isDownloading: false,
+      }));
+
+      // Fetch binaries and create File objects
+      const existingFiles = await Promise.all(
+        existingDocuments.value.map(async (doc) => {
+          const file = await downloadFileAsFile(doc.id, doc.filename);
+          return file;
+        })
+      );
+
+      // Assign existing files to state.fileInput
+      if (state.fileInput) {
+        state.fileInput = [...existingFiles, ...state.fileInput];
+      } else {
+        state.fileInput = existingFiles;
+      }
+
+    } catch (error) {
+      console.error('Error fetching document info:', error);
+      showSnackBar('error', t('errorFetchingDocuments'));
+    }
+  }
 });
+
+
 
 defineExpose({
   submit,

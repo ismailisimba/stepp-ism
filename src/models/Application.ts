@@ -8,6 +8,7 @@ export interface Application {
   marks: number;
   rank: number;
   avgMarks: number;
+  applicationReviewStatus: string;
   contactEmail: string;
   solicitationId: string;
   solicitationName: string;
@@ -46,6 +47,7 @@ export function parseApplicationFromObject(obj: any): Application {
     marks: obj["marks"] || null,
     rank: obj["rank"] || null,
     avgMarks: obj["avg_marks"] || null,
+    applicationReviewStatus: obj["application_review_status"] || null,
     contactEmail: obj["contact_email"] || null,
     programId: obj["program_id"] || null,
     programName: obj["program_name"] || "Program name",
